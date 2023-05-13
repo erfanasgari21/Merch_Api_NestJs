@@ -9,6 +9,7 @@ import { EditUserDto } from 'src/user/dto';
 describe('App e2e', () => {
   let app: INestApplication;
   let prisma: PrismaService;
+
   beforeAll(async () => {
     const moduleRef =
       await Test.createTestingModule({
@@ -90,9 +91,7 @@ describe('App e2e', () => {
         return pactum
           .spec()
           .get('/users/me')
-          .withHeaders({
-            Authorization: 'Bearer $S{userAt}'
-          })
+          .withBearerToken('$S{userAt}')
           .expectStatus(200)
       })
     });
@@ -106,9 +105,7 @@ describe('App e2e', () => {
         return pactum
           .spec()
           .patch('/users/edit')
-          .withHeaders({
-            Authorization: 'Bearer $S{userAt}'
-          })
+          .withBearerToken('$S{userAt}')
           .withBody(dto)
           .expectStatus(200)
           .expectBodyContains(dto.firstName)
@@ -118,32 +115,85 @@ describe('App e2e', () => {
   });
 
   describe('Design', () => {
+    const createDto1 = {
+      title: 'gryffindor',
+      description: 'gryffindor is the best house',
+    }
+    const createDto2 = {
+      title: 'slytherin',
+    }
     describe('GetEmptyDesigns', () => {
       it('should get empty designs', () => {
         return pactum
           .spec()
           .get('/designs')
-          .withHeaders({
-            Authorization: 'Bearer $S{userAt}'
-          })
+          .withBearerToken('$S{userAt}')
           .expectStatus(200)
           .expectBody([]);
       })
     });
     describe('CreateDesign', () => {
-      const dto = {
-        title: 'Asb',
-      }
       it('should create design', () => {
         return pactum
           .spec()
           .post('/designs')
-          .withHeaders({
-            Authorization: 'Bearer $S{userAt}'
-          })
-          .withBody(dto)
+          .withBearerToken('$S{userAt}')
+          .withBody(createDto1)
           .expectStatus(201)
-          .stores('designId', 'id')
+          .stores('designId1', 'id')
+      });
+    });
+    describe('GetDesignById', () => {
+      it('should get design by id', () => {
+        return pactum
+          .spec()
+          .get('/designs/$S{designId1}')
+          .withBearerToken('$S{userAt}')
+          .expectStatus(200)
+          .expectBodyContains(createDto1.title)
+      });
+    });
+    describe('CreateDesign', () => {
+      it('should create another design', () => {
+        return pactum
+          .spec()
+          .post('/designs')
+          .withBearerToken('$S{userAt}')
+          .withBody(createDto2)
+          .expectStatus(201)
+          .stores('designId2', 'id')
+      });
+    });
+    describe('GetDesigns', () => {
+      it('should get 2 designs', () => {
+        return pactum
+          .spec()
+          .get('/designs')
+          .withBearerToken('$S{userAt}')
+          .expectStatus(200)
+          .expectJsonLength(2)
+      })
+    });
+    describe('EditDesign', () => {
+      it('should edit design', () => {
+        return pactum
+          .spec()
+          .patch('/designs/$S{designId2}')
+          .withBearerToken('$S{userAt}')
+          .withBody({
+            description: 'slytherin is house of snakes'
+          })
+          .expectStatus(200)
+          .expectBodyContains('slytherin is house of snakes')
+      });
+    });
+    describe('DeleteDesign', () => {
+      it('should delete design', () => {
+        return pactum
+          .spec()
+          .delete('/designs/$S{designId2}')
+          .withBearerToken('$S{userAt}')
+          .expectStatus(200)
       });
     });
     describe('GetDesigns', () => {
@@ -151,75 +201,111 @@ describe('App e2e', () => {
         return pactum
           .spec()
           .get('/designs')
-          .withHeaders({
-            Authorization: 'Bearer $S{userAt}'
-          })
+          .withBearerToken('$S{userAt}')
           .expectStatus(200)
           .expectJsonLength(1)
+          .expectBodyContains(createDto1.title)
       })
     });
-    describe('GetDesignById', () => {
-      it('should get design by id', () => {
-        return pactum
-          .spec()
-          .get('/designs/$S{designId}')
-          .withPathParams({
-            designId: '$S{designId}'
-          })
-          .withHeaders({
-            Authorization: 'Bearer $S{userAt}'
-          })
-          .expectStatus(200)
-          .inspect()
-      });
-    });
-    describe('EditDesign', () => { });
-    describe('DeleteDesign', () => { });
   });
 
   describe('Product', () => {
+    const createDto1 = {
+      title: 'Tshirt',
+      basePrice: 200000,
+    }
+    const createDto2 = {
+      title: 'Mug',
+      basePrice: 100000,
+    }
     describe('GetEmptyProducts', () => {
       it('should get empty products', () => {
         return pactum
           .spec()
           .get('/products')
-          .withHeaders({
-            Authorization: 'Bearer $S{userAt}'
-          })
+          .withBearerToken('$S{userAt}')
           .expectStatus(200)
           .expectBody([]);
       })
     });
     describe('CreateProduct', () => {
-      const dto = {
-        title: 'Tshirt',
-        basePrice: 200000,
-      }
-      it('should create product', () => {
+      it('should create a product', () => {
         return pactum
           .spec()
           .post('/products')
-          .withHeaders({
-            Authorization: 'Bearer $S{userAt}'
-          })
-          .withBody(dto)
+          .withBearerToken('$S{userAt}')
+          .withBody(createDto1)
           .expectStatus(201)
+          .stores('productId1', 'id')
       });
     });
-    describe('GetProducts', () => {
+    describe('CreateProduct', () => {
+      it('should create another product', () => {
+        return pactum
+          .spec()
+          .post('/products')
+          .withBearerToken('$S{userAt}')
+          .withBody(createDto2)
+          .expectStatus(201)
+          .stores('productId2', 'id')
+      });
+    });
+    describe('GetAllProducts', () => {
+      it('should get 2 products', () => {
+        return pactum
+          .spec()
+          .get('/products')
+          .withBearerToken('$S{userAt}')
+          .expectStatus(200)
+          .expectJsonLength(2)
+      })
+    });
+    describe('GetProductById', () => {
+      it('should get product by id', () => {
+        return pactum
+          .spec()
+          .get('/products/$S{productId1}')
+          .withBearerToken('$S{userAt}')
+          .expectStatus(200)
+          .expectBodyContains(createDto1.title)
+      })
+    });
+    describe('EditProduct', () => {
+      it('should edit product', () => {
+        return pactum
+          .spec()
+          .patch('/products/$S{productId2}')
+          .withBearerToken('$S{userAt}')
+          .withBody({
+            basePrice: 150000,
+            description: 'this is a mug',
+          })
+          .expectStatus(200)
+          .expectBodyContains('this is a mug')
+          .expectBodyContains('150000')
+      })
+    });
+    describe('DeleteProduct', () => {
+      it('should delete product', () => {
+        return pactum
+          .spec()
+          .delete('/products/$S{productId2}')
+          .withBearerToken('$S{userAt}')
+          .expectStatus(200)
+      });
+    });
+    describe('GetAllProducts', () => {
       it('should get one product', () => {
         return pactum
           .spec()
           .get('/products')
-          .withHeaders({
-            Authorization: 'Bearer $S{userAt}'
-          })
+          .withBearerToken('$S{userAt}')
           .expectStatus(200)
           .expectJsonLength(1)
+          .expectBodyContains(createDto1.title)
       })
     });
-  })
-
+  });
   afterAll(() => {
     app.close();
   })
