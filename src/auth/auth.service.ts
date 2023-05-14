@@ -72,6 +72,7 @@ export class AuthService {
             secret: process.env.JWT_SECRET,
         })
         return {
+            id: userId,
             access_token: token,
         }
     }

@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateProductDto, EditProductDto } from './dto';
-import { ForbiddenException } from '@nestjs/common';
+import { ForbiddenException, NotFoundException } from '@nestjs/common';
 
 @Injectable()
 export class ProductService {
@@ -40,12 +40,18 @@ export class ProductService {
         userId: number,
         productId: number,
     ) {
-        const product = await this.prisma.product.findFirst({
+        // find the product
+        const product = await this.prisma.product.findUnique({
             where: {
-                userId,
                 id: productId
             }
         });
+        // check if the product exists
+        if (!product)
+            throw new NotFoundException('Product not found');
+        // check if the product is for the user
+        if (product.userId !== userId)
+            throw new ForbiddenException('Access to product denied');
         return product;
     }
 
@@ -54,14 +60,19 @@ export class ProductService {
         productId: number,
         dto: EditProductDto
     ) {
+        // find the product
         const product = await this.prisma.product.findUnique({
             where: {
                 id: productId
             }
         })
-        if (!product || product.userId !== userId) {
-            throw new ForbiddenException('Access to resource denied')
-        }
+        // check if the product exists
+        if (!product)
+            throw new NotFoundException('Product not found');
+        // check if the product is for the user
+        if (product.userId !== userId)
+            throw new ForbiddenException('Access to product denied');
+        // update the product
         const updatedProduct = await this.prisma.product.update({
             where: {
                 id: productId
@@ -77,14 +88,19 @@ export class ProductService {
         userId: number,
         productId: number,
     ) {
+        // find the product
         const product = await this.prisma.product.findUnique({
             where: {
                 id: productId
             }
         })
-        if (!product || product.userId !== userId) {
-            throw new ForbiddenException('Access to resource denied')
-        }
+        // check if the product exists
+        if (!product)
+            throw new NotFoundException('Product not found');
+        // check if the product is for the user
+        if (product.userId !== userId)
+            throw new ForbiddenException('Access to product denied');
+        // delete the product
         const deletedProduct = await this.prisma.product.delete({
             where: {
                 id: productId

@@ -3,8 +3,9 @@ import { AppModule } from './../src/app.module';
 import { INestApplication, ValidationPipe } from '@nestjs/common';
 import { PrismaService } from './../src/prisma/prisma.service';
 import * as pactum from 'pactum';
-import { AuthDto } from 'src/auth/dto';
-import { EditUserDto } from 'src/user/dto';
+import { AuthDto } from './../src/auth/dto';
+import { EditUserDto } from './../src/user/dto';
+import { QueryMerchandiseDto } from './../src/merchandise/dto';
 
 describe('App e2e', () => {
   let app: INestApplication;
@@ -81,6 +82,7 @@ describe('App e2e', () => {
           .withBody(dto)
           .expectStatus(201)
           .stores('userAt', 'access_token')
+          .stores('userId', 'id')
       })
     });
   });
@@ -121,6 +123,9 @@ describe('App e2e', () => {
     }
     const createDto2 = {
       title: 'slytherin',
+    }
+    const createDto3 = {
+      title: 'hufflepuff',
     }
     describe('GetEmptyDesigns', () => {
       it('should get empty designs', () => {
@@ -207,6 +212,17 @@ describe('App e2e', () => {
           .expectBodyContains(createDto1.title)
       })
     });
+    describe('CreateDesign', () => {
+      it('should create another design', () => {
+        return pactum
+          .spec()
+          .post('/designs')
+          .withBearerToken('$S{userAt}')
+          .withBody(createDto3)
+          .expectStatus(201)
+          .stores('designId3', 'id')
+      });
+    });
   });
 
   describe('Product', () => {
@@ -217,6 +233,10 @@ describe('App e2e', () => {
     const createDto2 = {
       title: 'Mug',
       basePrice: 100000,
+    }
+    const createDto3 = {
+      title: 'Pixel',
+      basePrice: 5000,
     }
     describe('GetEmptyProducts', () => {
       it('should get empty products', () => {
@@ -305,7 +325,123 @@ describe('App e2e', () => {
           .expectBodyContains(createDto1.title)
       })
     });
+    describe('CreateProduct', () => {
+      it('should create another product', () => {
+        return pactum
+          .spec()
+          .post('/products')
+          .withBearerToken('$S{userAt}')
+          .withBody(createDto3)
+          .expectStatus(201)
+          .stores('productId3', 'id')
+      });
+    });
   });
+
+  describe('Merchandise', () => {
+    describe('CreateMerchandise', () => {
+      it('should create merchandise', () => {
+        return pactum
+          .spec()
+          .post('/merchandises')
+          .withBearerToken('$S{userAt}')
+          .withBody({
+            designId: '$S{designId1}',
+            productId: '$S{productId1}',
+            profit: 10000,
+          })
+          .expectStatus(201)
+          .stores('merchandiseId1', 'id')
+      });
+    });
+    describe('GetMyMerchandises', () => {
+      it('should get 1 merchandise', () => {
+        return pactum
+          .spec()
+          .get('/merchandises/my')
+          .withBearerToken('$S{userAt}')
+          .expectStatus(200)
+          .expectJsonLength(1)
+      });
+    });
+    describe('GetMerchandiseById', () => {
+      it('should get a merchandise by Id', () => {
+        return pactum
+          .spec()
+          .get('/merchandises/my/$S{merchandiseId1}')
+          .withBearerToken('$S{userAt}')
+          .expectStatus(200)
+      });
+    });
+    describe('CreateMerchandiseBulk', () => {
+      it('should create merchandise', () => {
+        return pactum
+          .spec()
+          .post('/merchandises/bulk')
+          .withBearerToken('$S{userAt}')
+          .withBody({
+            designId: '$S{designId3}',
+            products: [
+              {
+                productId: '$S{productId1}',
+                profit: 50000,
+              },
+              {
+                productId: '$S{productId3}',
+                profit: 5000,
+              }
+            ]
+          })
+          .expectStatus(201)
+
+      });
+    });
+    describe('GetMerchandises', () => {
+      it('should get all merchandises', () => {
+        return pactum
+          .spec()
+          .get('/merchandises')
+          .withBearerToken('$S{userAt}')
+          .expectStatus(200)
+          .expectJsonLength(3)
+          .inspect()
+
+      });
+      it('should get all merchandises of product1', () => {
+        return pactum
+          .spec()
+          .get('/merchandises')
+          .withBearerToken('$S{userAt}')
+          .withQueryParams({
+            productId: '$S{productId1}'
+          })
+          .expectStatus(200)
+          .expectJsonLength(2)
+      });
+      it('should get all merchandises of design3', () => {
+        return pactum
+          .spec()
+          .get('/merchandises')
+          .withBearerToken('$S{userAt}')
+          .withQueryParams({ designId: '$S{designId3}' })
+          .expectStatus(200)
+          .expectJsonLength(2)
+      });
+      it('should get merchandises page2 perpage2', () => {
+        return pactum
+          .spec()
+          .get('/merchandises')
+          .withBearerToken('$S{userAt}')
+          .withQueryParams({ limit: 2, page: 2 })
+          .expectStatus(200)
+          .expectJsonLength(1)
+
+      });
+    });
+
+  });
+
+
   afterAll(() => {
     app.close();
   })

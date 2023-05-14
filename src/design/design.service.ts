@@ -1,4 +1,4 @@
-import { ForbiddenException, Injectable } from '@nestjs/common';
+import { ForbiddenException, NotFoundException, Injectable } from '@nestjs/common';
 import { CreateDesignDto, EditDesignDto } from './dto';
 import { PrismaService } from '../prisma/prisma.service';
 
@@ -36,12 +36,19 @@ export class DesignService {
         userId: number,
         designId: number,
     ) {
-        const design = await this.prisma.design.findFirst({
+        // find the design
+        const design = await this.prisma.design.findUnique({
             where: {
-                userId,
                 id: designId
             }
         });
+        // check if the design exists
+        if (!design)
+            throw new NotFoundException('Design not found');
+        // check if the design is for the user
+        if (design.userId !== userId)
+            throw new ForbiddenException('Access to resource denied');
+
         return design;
     }
 
@@ -51,14 +58,19 @@ export class DesignService {
         designId: number,
         dto: EditDesignDto
     ) {
+        // find the design
         const design = await this.prisma.design.findUnique({
             where: {
                 id: designId
             }
         })
-        if (!design || design.userId !== userId) {
-            throw new ForbiddenException('Access to resource denied')
-        }
+        // check if the design exists
+        if (!design)
+            throw new NotFoundException('Design not found');
+        // check if the design is for the user
+        if (design.userId !== userId)
+            throw new ForbiddenException('Access to resource denied');
+        // update the design
         const updatedDesign = await this.prisma.design.update({
             where: {
                 id: designId
@@ -73,14 +85,19 @@ export class DesignService {
         userId: number,
         designId: number,
     ) {
+        // find the design
         const design = await this.prisma.design.findUnique({
             where: {
                 id: designId
             }
         })
-        if (!design || design.userId !== userId) {
-            throw new ForbiddenException('Access to resource denied')
-        }
+        // check if the design exists
+        if (!design)
+            throw new NotFoundException('Design not found');
+        // check if the design is for the user
+        if (design.userId !== userId)
+            throw new ForbiddenException('Access to resource denied');
+        // delete the design
         const deletedDesign = await this.prisma.design.delete({
             where: {
                 id: designId
