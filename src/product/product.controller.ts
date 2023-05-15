@@ -4,7 +4,9 @@ import { GetUser } from '../auth/decorator';
 import { ParseIntPipe } from '@nestjs/common';
 import { CreateProductDto, EditProductDto } from './dto';
 import { JwtGuard } from '../auth/guard';
+import { ApiTags } from '@nestjs/swagger';
 
+@ApiTags('product')
 @UseGuards(JwtGuard)
 @Controller('products')
 export class ProductController {

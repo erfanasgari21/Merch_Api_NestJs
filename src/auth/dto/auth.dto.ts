@@ -4,6 +4,7 @@ import {
     IsString,
 } from 'class-validator';
 
+
 export class AuthDto {
     @IsNotEmpty()
     @IsEmail()

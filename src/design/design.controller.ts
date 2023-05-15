@@ -5,7 +5,9 @@ import { CreateDesignDto } from './dto/create-design.dto';
 import { GetUser } from '../auth/decorator';
 import { ParseIntPipe } from '@nestjs/common';
 import { EditDesignDto } from './dto';
+import { ApiTags } from '@nestjs/swagger';
 
+@ApiTags('design')
 @UseGuards(JwtGuard)
 @Controller('designs')
 export class DesignController {

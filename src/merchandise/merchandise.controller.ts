@@ -4,7 +4,9 @@ import { MerchandiseService } from './merchandise.service';
 import { CreateMerchandiseBulkDto, CreateMerchandiseDto, EditMerchandiseDto, QueryMerchandiseDto } from './dto';
 import { GetUser } from '../auth/decorator';
 import { ParseIntPipe } from '@nestjs/common/pipes';
+import { ApiTags } from '@nestjs/swagger';
 
+@ApiTags('merchandise')
 @UseGuards(JwtGuard)
 @Controller('merchandises')
 export class MerchandiseController {
