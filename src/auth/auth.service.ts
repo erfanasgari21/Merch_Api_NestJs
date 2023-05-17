@@ -1,7 +1,9 @@
 import { Injectable, ForbiddenException } from '@nestjs/common';
+import { Auth } from './entity/auth.entity';
 import { AuthDto } from './dto';
 import { JwtService } from '@nestjs/jwt';
 import { PrismaService } from '../prisma/prisma.service';
+import { User } from '@prisma/client';
 import * as argon from 'argon2';
 
 @Injectable({})
@@ -15,19 +17,16 @@ export class AuthService {
         try {
             // generate password hash
             const hash = await argon.hash(dto.password)
+            delete dto.password;
             // create new user in db
             const user = await this.prisma.user.create({
                 data: {
-                    email: dto.email,
+                    ...dto,
                     hash: hash,
                 },
-                select: {
-                    id: true,
-                    email: true,
-                }
             });
             // return the saved user token
-            return this.signToken(user.id, user.email);
+            return this.signToken(user);
 
         } catch (error) {
             if (error.code === 'P2002') {
@@ -45,11 +44,6 @@ export class AuthService {
             where: {
                 email: dto.email
             },
-            select: {
-                id: true,
-                email: true,
-                hash: true,
-            }
         });
         // if user not found throw error
         if (!user) {
@@ -62,18 +56,19 @@ export class AuthService {
             throw new ForbiddenException('Invalid email or password');
         }
         // return the user token
-        return this.signToken(user.id, user.email);
+        return this.signToken(user);
     }
 
-    signToken(userId: number, email: string) {
-        const payload = { userId, email };
+    signToken(user: User) {
+        const payload = { userId: user.id, email: user.email };
         const token = this.jwt.sign(payload, {
             expiresIn: '7d',
             secret: process.env.JWT_SECRET,
         })
+        delete user.hash;
         return {
-            id: userId,
+            ...user,
             access_token: token,
-        }
+        } as Auth
     }
 }

@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { EditUserDto } from './dto';
+import { User } from './entity/user.entity'
 import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
@@ -17,7 +18,7 @@ export class UserService {
                 ...dto
             },
         });
-        delete user.hash;
-        return user;
+        delete user.hash
+        return user as User;
     }
 }

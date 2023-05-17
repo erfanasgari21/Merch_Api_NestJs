@@ -2,6 +2,50 @@ import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateMerchandiseBulkDto, CreateMerchandiseDto, EditMerchandiseDto, QueryMerchandiseDto } from './dto';
 import { ForbiddenException, NotFoundException } from '@nestjs/common';
+import { Merchandise, MyMerchandise } from './entity/merchandise.entity';
+
+const myMerchandiseOptions = {
+    select: {
+        id: true,
+        designId: true,
+        productId: true,
+        profit: true,
+        createdAt: true,
+        updatedAt: true,
+    }
+
+}
+
+const merchandiseOptions = {
+    select: {
+        id: true,
+        design: {
+            select: {
+                user: {
+                    select: {
+                        firstName: true,
+                        lastName: true,
+                        id: true
+                    }
+                },
+                title: true,
+                description: true,
+                id: true,
+            }
+        },
+        product: {
+            select: {
+                title: true,
+                description: true,
+                id: true,
+                basePrice: true,
+            }
+        },
+        createdAt: true,
+        updatedAt: true,
+        profit: true,
+    }
+}
 
 @Injectable()
 export class MerchandiseService {
@@ -38,9 +82,10 @@ export class MerchandiseService {
         const merchandise = await this.prisma.merchandise.create({
             data: {
                 ...dto,
-            }
+            },
+            ...myMerchandiseOptions
         });
-        return merchandise;
+        return merchandise as MyMerchandise;
     }
 
 
@@ -80,13 +125,14 @@ export class MerchandiseService {
             where: {
                 id: merchandiseId
             },
+            ...merchandiseOptions
         });
         // check if the merchandise exists
         if (!merchandise)
             throw new NotFoundException('Merchandise not found');
         // calculate and inject the price
         const merchandiseWithPrice = this.calculatePrice(merchandise);
-        return merchandiseWithPrice;
+        return merchandiseWithPrice as Merchandise;
     }
 
     async getMerchandises(
@@ -94,7 +140,7 @@ export class MerchandiseService {
     ) {
         const params = {
             where: {},
-            include: { product: true, design: true, },
+            ...merchandiseOptions
         };
         if (query.designId)
             params['where']['designId'] = parseInt(query.designId);
@@ -116,7 +162,7 @@ export class MerchandiseService {
         }
         const merchandises = await this.prisma.merchandise.findMany(params);
         const merchandisesWithPrice = merchandises.map(this.calculatePrice);
-        return merchandisesWithPrice;
+        return merchandisesWithPrice as Merchandise[];
     }
 
     async getMyMerchandiseById(
@@ -128,8 +174,13 @@ export class MerchandiseService {
             where: {
                 id: merchandiseId
             },
-            include: {
-                design: true,
+            select: {
+                ...myMerchandiseOptions.select,
+                design: {
+                    select: {
+                        userId: true
+                    }
+                },
             }
 
         });
@@ -139,8 +190,8 @@ export class MerchandiseService {
         // check if the merchandise is for the user
         if (merchandise.design.userId !== userId)
             throw new ForbiddenException('Access to resource denied');
-
-        return merchandise;
+        delete merchandise.design
+        return merchandise as MyMerchandise;
     }
 
     async getMyMerchandises(
@@ -151,9 +202,10 @@ export class MerchandiseService {
                 design: {
                     userId
                 }
-            }
+            },
+            ...myMerchandiseOptions
         });
-        return merchandises;
+        return merchandises as MyMerchandise[];
     }
 
 
@@ -184,9 +236,10 @@ export class MerchandiseService {
             },
             data: {
                 ...dto,
-            }
+            },
+            ...myMerchandiseOptions
         });
-        return updatedMerchandise;
+        return updatedMerchandise as MyMerchandise;
     }
 
     async deleteMerchandiseById(
@@ -212,9 +265,10 @@ export class MerchandiseService {
         const deletedMerchandise = await this.prisma.merchandise.delete({
             where: {
                 id: merchandiseId
-            }
+            },
+            ...myMerchandiseOptions
         });
-        return deletedMerchandise;
+        return deletedMerchandise as MyMerchandise;
     }
 
 }

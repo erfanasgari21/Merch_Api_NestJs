@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateProductDto, EditProductDto } from './dto';
 import { ForbiddenException, NotFoundException } from '@nestjs/common';
+import { Product } from './entity/product.entity';
 
 @Injectable()
 export class ProductService {
@@ -11,7 +12,7 @@ export class ProductService {
         userId: number,
         dto: CreateProductDto
     ) {
-        const product = await this.prisma.product.create({
+        const product: Product = await this.prisma.product.create({
             data: {
                 userId,
                 ...dto,
@@ -21,14 +22,14 @@ export class ProductService {
     }
 
     async getAllProducts() {
-        const products = await this.prisma.product.findMany({});
+        const products: Product[] = await this.prisma.product.findMany({});
         return products;
     }
 
     async getMyProducts(
         userId: number
     ) {
-        const products = await this.prisma.product.findMany({
+        const products: Product[] = await this.prisma.product.findMany({
             where: {
                 userId
             }
@@ -52,7 +53,7 @@ export class ProductService {
         // check if the product is for the user
         if (product.userId !== userId)
             throw new ForbiddenException('Access to product denied');
-        return product;
+        return product as Product;
     }
 
     async editProductById(
@@ -73,7 +74,7 @@ export class ProductService {
         if (product.userId !== userId)
             throw new ForbiddenException('Access to product denied');
         // update the product
-        const updatedProduct = await this.prisma.product.update({
+        const updatedProduct: Product = await this.prisma.product.update({
             where: {
                 id: productId
             },
@@ -106,7 +107,7 @@ export class ProductService {
                 id: productId
             }
         })
-        return deletedProduct;
+        return deletedProduct as Product;
     }
 
 }

@@ -8,7 +8,8 @@ async function bootstrap() {
 
   const config = new DocumentBuilder()
     .setTitle('Modopod Assessment Task API')
-    .setDescription('This API is developed for Modopod assessment task')
+    .setDescription('This API is developed for Modopod assessment task.')
+    .addBearerAuth()
     .setVersion('1.0')
     .build();
   const document = SwaggerModule.createDocument(app, config);

@@ -1,6 +1,7 @@
 import { ForbiddenException, NotFoundException, Injectable } from '@nestjs/common';
 import { CreateDesignDto, EditDesignDto } from './dto';
 import { PrismaService } from '../prisma/prisma.service';
+import { Design } from './entity/design.entity'
 
 @Injectable()
 export class DesignService {
@@ -10,7 +11,7 @@ export class DesignService {
         userId: number,
         dto: CreateDesignDto
     ) {
-        const design = await this.prisma.design.create({
+        const design: Design = await this.prisma.design.create({
             data: {
                 userId,
                 ...dto,
@@ -23,10 +24,11 @@ export class DesignService {
     async getDesigns(
         userId: number
     ) {
-        const designs = await this.prisma.design.findMany({
+        const designs: Design[] = await this.prisma.design.findMany({
             where: {
                 userId
-            }
+            },
+
         });
         return designs;
     }
@@ -37,7 +39,7 @@ export class DesignService {
         designId: number,
     ) {
         // find the design
-        const design = await this.prisma.design.findUnique({
+        const design: Design = await this.prisma.design.findUnique({
             where: {
                 id: designId
             }
@@ -71,7 +73,7 @@ export class DesignService {
         if (design.userId !== userId)
             throw new ForbiddenException('Access to resource denied');
         // update the design
-        const updatedDesign = await this.prisma.design.update({
+        const updatedDesign: Design = await this.prisma.design.update({
             where: {
                 id: designId
             },
@@ -98,7 +100,7 @@ export class DesignService {
         if (design.userId !== userId)
             throw new ForbiddenException('Access to resource denied');
         // delete the design
-        const deletedDesign = await this.prisma.design.delete({
+        const deletedDesign: Design = await this.prisma.design.delete({
             where: {
                 id: designId
             }
