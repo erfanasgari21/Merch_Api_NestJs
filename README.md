@@ -21,7 +21,7 @@ Merch_Api_NestJs is a RESTful API built with NestJS and Prisma, utilizing Postgr
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/yourusername/Merch_Api_NestJs.git
+   git clone https://github.com/erfanasgari21/Merch_Api_NestJs.git
    ```
 2. Install dependencies:
    ```bash
@@ -42,9 +42,9 @@ Merch_Api_NestJs is a RESTful API built with NestJS and Prisma, utilizing Postgr
 
 Access the API at `http://localhost:3000`. The available endpoints include:
 
-- `/users`
-- `/designs`
-- `/products`
+- `/auth`
+- `/design`
+- `/product`
 - `/merchandise`
 
 ## Testing
