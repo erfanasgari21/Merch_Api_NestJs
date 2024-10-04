@@ -1,4 +1,4 @@
-```markdown
+
 # Merch_Api_NestJs
 
 Merch_Api_NestJs is a RESTful API built with NestJS and Prisma, utilizing PostgreSQL as the database. This project was created as an assessment for a job application and provides a backend for managing users, designs, products, and merchandise.
